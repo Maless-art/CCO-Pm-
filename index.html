@@ -1,0 +1,1368 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Control de Cobros Operativos</title>
+
+    <meta name="theme-color" content="#d32f2f">
+
+   <link rel="manifest" href="manifest.json">
+
+    <link rel="stylesheet" href="style.css">
+
+    <link rel="icon" href="img/icon.png">
+
+</head>
+
+<body>
+
+<!-- ===================================================== -->
+<!-- INICIO DE SESIÓN                                      -->
+<!-- ===================================================== -->
+
+<div id="loginScreen" class="loginScreen hidden">
+
+    <div class="loginCard">
+
+        <div class="loginLogo">
+            CCO
+        </div>
+
+        <h1>Control de Cobros Operativos</h1>
+
+        <p class="loginSubtitle">
+            Ingrese con su cuenta autorizada
+        </p>
+
+        <form id="formLogin">
+
+            <div class="loginGroup">
+
+                <label for="loginCorreo">
+                    Correo electrónico
+                </label>
+
+                <input
+                    type="email"
+                    id="loginCorreo"
+                    autocomplete="username"
+                    required>
+
+            </div>
+
+            <div class="loginGroup">
+
+                <label for="loginPassword">
+                    Contraseña
+                </label>
+
+                <input
+                    type="password"
+                    id="loginPassword"
+                    autocomplete="current-password"
+                    required>
+
+            </div>
+
+            <p id="loginError" class="loginError hidden"></p>
+
+            <button type="submit" id="btnIniciarSesion">
+                Iniciar sesión
+            </button>
+
+        </form>
+
+        <div class="loginVersion">
+            v0.2.0 Alpha
+        </div>
+
+    </div>
+
+</div>
+    <!-- ===================================================== -->
+    <!-- PANTALLA DE CARGA                                    -->
+    <!-- ===================================================== -->
+
+    <div id="splashScreen">
+
+        <div class="splashContainer">
+
+            <img
+    src="img/logo-512.svg"
+    alt="CCO"
+    class="logoSplash">
+
+            <h1>
+
+                Control de Cobros Operativos
+
+            </h1>
+
+            <p class="version">
+
+                Versión v0.1.0 Alpha
+
+            </p>
+
+            <div class="loaderCircle"></div>
+
+           
+
+            <p id="loadingText">
+
+                Preparando interfaz...
+
+            </p>
+
+        </div>
+
+    </div>
+
+
+
+    <!-- ===================================================== -->
+    <!-- APLICACIÓN                                            -->
+    <!-- ===================================================== -->
+
+    <div id="app" class="hidden">
+
+
+
+        <!-- ============================================= -->
+        <!-- BARRA SUPERIOR                                -->
+        <!-- ============================================= -->
+
+        <header>
+
+            <div class="headerLeft">
+
+                <h2>
+
+                    Control de Cobros Operativos
+
+                </h2>
+
+            </div>
+
+            <div class="headerRight">
+
+    <div class="userInfo">
+
+        <span id="nombreUsuario">
+            Usuario
+        </span>
+
+        <span id="rolUsuario">
+            Consulta
+        </span>
+
+    </div>
+
+    <span class="onlineStatus">
+        ● 
+    </span>
+
+    <button id="btnCerrarSesion">
+        Cerrar sesión
+    </button>
+
+</div>
+
+        </header>
+
+
+
+        <!-- ============================================= -->
+        <!-- MENÚ                                           -->
+        <!-- ============================================= -->
+
+        <nav>
+
+            <button
+                id="btnResumen"
+                class="menuButton active">
+
+                Resumen
+
+            </button>
+
+            <button
+                id="btnCobros"
+                class="menuButton">
+
+                Cobros Pendientes
+
+            </button>
+
+            <button
+                id="btnBloqueados"
+                class="menuButton">
+
+                Clientes Bloqueados
+
+            </button>
+
+            <button
+                id="btnConfig"
+                class="menuButton">
+
+                Configuración
+
+            </button>
+
+        </nav>
+
+        <!-- ============================================= -->
+        <!-- CONTENIDO PRINCIPAL                           -->
+        <!-- ============================================= -->
+
+        <main id="mainContent">
+
+
+
+            <!-- ========================================= -->
+            <!-- RESUMEN                                   -->
+            <!-- ========================================= -->
+
+            <section id="panelResumen" class="panelActivo">
+
+                <div class="cardsContainer">
+
+
+
+			<div class="dashboardCard" id="cardPendiente">
+
+                        <span class="cardTitle">
+
+                            Pendiente Total
+
+                        </span>
+
+                        <h2 id="lblPendienteTotal">
+
+                            B/. 0.00
+
+                        </h2>
+
+                    </div>
+
+
+
+                    <div class="dashboardCard green" id="cardEnPlazo">
+
+                        <span class="cardTitle">
+
+                            En Plazo
+
+                        </span>
+
+                        <h2 id="lblEnPlazo">
+
+                            0
+
+                        </h2>
+
+                    </div>
+
+
+
+                    <div class="dashboardCard yellow" id="cardProximos">
+
+                        <span class="cardTitle">
+
+                            Próximos a vencer
+
+                        </span>
+
+                        <h2 id="lblProximos">
+
+                            0
+
+                        </h2>
+
+                    </div>
+
+
+
+                    <div class="dashboardCard red" id="cardVencidos">
+
+                        <span class="cardTitle">
+
+                            Vencidos
+
+                        </span>
+
+                        <h2 id="lblVencidos">
+
+                            0
+
+                        </h2>
+
+                    </div>
+
+
+
+                    <div class="dashboardCard blue" id="cardCobrado">
+
+                        <span class="cardTitle">
+
+                            Cobrado este mes
+
+                        </span>
+
+                        <h2 id="lblCobradoMes">
+
+                            B/. 0.00
+
+                        </h2>
+
+                    </div>
+
+
+
+                </div>
+
+
+
+                <!-- ===================================== -->
+                <!-- RESUMEN INFERIOR                      -->
+                <!-- ===================================== -->
+
+                <div class="dashboardInfo">
+
+                    <div class="infoBox">
+
+                        <h3>
+
+                            Bienvenido
+
+                        </h3>
+
+                        <p>
+
+                            Desde esta aplicación podrás administrar los clientes con crédito operativo,
+                            controlar fechas de cobro, registrar pagos, bloquear clientes reincidentes
+                            y mantener un historial completo para Auditoría y Contabilidad.
+
+                        </p>
+
+                    </div>
+
+                </div>
+
+            </section>
+
+
+
+            <!-- ========================================= -->
+            <!-- COBROS PENDIENTES                         -->
+            <!-- ========================================= -->
+
+            <section
+                id="panelCobros"
+                class="panelOculto">
+
+                <div class="toolbar">
+
+                    <input
+                        type="text"
+                        id="txtBuscar"
+                        placeholder="Buscar cliente, código o factura...">
+
+                    <select id="cmbVendedor">
+
+                        <option value="">
+
+                            Todos los vendedores
+
+                        </option>
+
+                    </select>
+
+
+
+                    <select id="cmbRuta">
+
+                        <option value="">
+
+                            Todas las rutas
+
+                        </option>
+
+                    </select>
+
+
+
+                    <select id="cmbEstado">
+
+                        <option value="">
+
+                            Todos los estados
+
+                        </option>
+
+                        <option>
+
+                            En plazo
+
+                        </option>
+
+                        <option>
+
+                            Próximo a vencer
+
+                        </option>
+
+                        <option>
+
+                            Vence hoy
+
+                        </option>
+
+                        <option>
+
+                            Vencido
+
+                        </option>
+<option>
+    Cheque posfechado
+</option>
+                    </select>
+
+
+
+                    <button id="btnNuevaFactura">
+
+    Nueva Factura
+
+</button>
+
+<button
+    type="button"
+    id="btnExportarPendientes"
+    class="btnPrimary">
+    Exportar Excel
+</button>
+
+<button id="btnHistorial">
+
+    Historial de Cobros
+
+</button>
+
+                </div>
+
+                <div class="tableContainer">
+
+                    <table id="tablaCobros">
+
+                        <thead>
+
+                            <tr>
+
+                                <th>Estado</th>
+                                <th>Código</th>
+                                <th>Cliente</th>
+                                <th>Ruta</th>
+                                <th>Vendedor</th>
+                                <th>Factura</th>
+                                <th>Monto</th>
+                                <th>Plazo</th>
+                                <th>Entrega</th>
+                                <th>Cobro</th>
+                                <th>Días</th>
+                                <th>Notas</th>
+                                <th>Pagado</th>
+                                <th>Acciones</th>
+
+                            </tr>
+
+                        </thead>
+
+                        <tbody id="tbodyCobros">
+
+                            <!-- Se llena automáticamente -->
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+            </section>
+
+
+
+            <!-- ========================================= -->
+            <!-- CLIENTES BLOQUEADOS                       -->
+            <!-- ========================================= -->
+
+            <section
+                id="panelBloqueados"
+                class="panelOculto">
+
+                <h2>
+
+                    Clientes Bloqueados
+
+                </h2>
+
+                <div class="tableContainer">
+
+                    <table id="tablaBloqueados">
+
+                        <thead>
+
+                            <tr>
+
+                                <th>Código</th>
+                                <th>Cliente</th>
+                                <th>Ruta</th>
+                                <th>Vendedor</th>
+                                <th>Fecha bloqueo</th>
+                                <th>Motivo</th>
+                                <th>Acción</th>
+
+                            </tr>
+
+                        </thead>
+
+                        <tbody id="tbodyBloqueados">
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+            </section>
+
+
+
+            <!-- ========================================= -->
+            <!-- CONFIGURACIÓN                             -->
+            <!-- ========================================= -->
+
+            <section
+                id="panelConfig"
+                class="panelOculto">
+
+                <h2>
+
+                    Configuración
+
+                </h2>
+
+                <div class="configGrid">
+
+                    <button class="configButton">
+
+                        Usuarios
+
+                    </button>
+
+
+		<button class="configButton">
+
+    			Clientes
+
+		    </button>
+
+                    <button class="configButton">
+
+                        Vendedores
+
+                    </button>
+
+                    <button class="configButton">
+
+                        Rutas
+
+                    </button>
+
+                    <button class="configButton">
+
+                        Firebase
+
+                    </button>
+
+                    <button class="configButton">
+
+                        Copia de Seguridad
+
+                    </button>
+
+                    <button class="configButton">
+
+                        Restaurar Respaldo
+
+                    </button>
+
+                    <button class="configButton">
+
+                        Auditoría
+
+                    </button>
+
+                    <button class="configButton">
+
+                        Acerca de
+
+                    </button>
+
+                </div>
+
+            </section>
+
+        </main>
+
+        <!-- ============================================= -->
+        <!-- FOOTER                                        -->
+        <!-- ============================================= -->
+
+        <footer>
+
+            <div class="footerLeft">
+
+                Control de Cobros Operativos
+
+            </div>
+
+            <div class="footerCenter">
+
+                v0.1.0 Alpha
+
+            </div>
+
+            
+
+        </footer>
+
+    </div>
+
+<!-- ===================================================== -->
+<!-- MODAL NUEVA FACTURA                                  -->
+<!-- ===================================================== -->
+
+<div id="modalNuevaFactura" class="modal hidden">
+
+    <div class="modalWindow large">
+
+        <div class="modalHeader">
+
+            <h2>Nueva Factura Operativa</h2>
+
+            <button
+                id="btnCerrarNuevaFactura"
+                class="closeButton">
+
+                ✕
+
+            </button>
+
+        </div>
+
+        <div class="modalBody">
+
+            <form id="formNuevaFactura">
+<div class="formGroup selectorClienteFactura">
+
+    <label for="selectClienteFactura">
+        Buscar / seleccionar cliente
+    </label>
+
+    <input
+        type="text"
+        id="buscarClienteFactura"
+        placeholder="Escriba código o nombre del cliente..."
+        autocomplete="off">
+<div
+    id="sugerenciasClienteFactura"
+    class="sugerenciasClienteFactura hidden">
+</div>
+    <select id="selectClienteFactura">
+        <option value="">
+            Seleccione un cliente
+        </option>
+    </select>
+
+</div>
+
+                <div class="formGrid">
+
+                    <div class="formGroup">
+
+                        <label for="inputCodigo">
+                            Código de cliente
+                        </label>
+
+                        <input
+                            type="text"
+                            id="inputCodigo"
+                            required>
+
+                    </div>
+
+                    <div class="formGroup">
+
+                        <label for="inputCliente">
+                            Nombre del cliente
+                        </label>
+
+                        <input
+                            type="text"
+                            id="inputCliente"
+                            required>
+
+                    </div>
+
+                    <div class="formGroup">
+
+                        <label for="inputRuta">
+                            Ruta
+                        </label>
+
+                        <input
+                            type="text"
+                            id="inputRuta"
+                            required>
+
+                    </div>
+
+                    <div class="formGroup">
+
+                        <label for="inputVendedor">
+                            Vendedor
+                        </label>
+
+                        <input
+                            type="text"
+                            id="inputVendedor"
+                            required>
+
+                    </div>
+
+                    <div class="formGroup">
+
+                        <label for="inputContacto">
+                            Contacto
+                        </label>
+
+                        <input
+                            type="text"
+                            id="inputContacto">
+
+                    </div>
+
+                    <div class="formGroup">
+
+                        <label for="inputTelefono">
+                            Teléfono
+                        </label>
+
+                        <input
+                            type="tel"
+                            id="inputTelefono">
+
+                    </div>
+
+                    <div class="formGroup">
+
+                        <label for="inputFactura">
+                            Número de factura
+                        </label>
+
+                        <input
+                            type="text"
+                            id="inputFactura"
+                            required>
+
+                    </div>
+
+                    <div class="formGroup">
+
+                        <label for="inputMonto">
+                            Monto
+                        </label>
+
+                        <input
+                            type="number"
+                            id="inputMonto"
+                            min="0.01"
+                            step="0.01"
+                            required>
+
+                    </div>
+
+                    <div class="formGroup">
+
+                        <label for="inputFechaFactura">
+                            Fecha de factura
+                        </label>
+
+                        <input
+                            type="date"
+                            id="inputFechaFactura"
+                            required>
+
+                    </div>
+
+                    <div class="formGroup">
+
+                        <label for="inputFechaEntrega">
+                            Fecha de entrega
+                        </label>
+
+                        <input
+                            type="date"
+                            id="inputFechaEntrega"
+                            required>
+
+                    </div>
+<div class="formGroup">
+
+    <label class="checkboxLabel">
+        <input
+            type="checkbox"
+            id="inputChequePosfechado">
+        Cheque posfechado
+    </label>
+
+</div>
+
+<div
+    class="formGroup"
+    id="grupoFechaCheque"
+    style="display:none;">
+
+    <label for="inputFechaCheque">
+        Fecha del cheque
+    </label>
+
+    <input
+        type="date"
+        id="inputFechaCheque">
+
+</div>
+                    <div class="formGroup" id="grupoPlazo">
+
+                        <label for="inputPlazo">
+                            Plazo en días
+                        </label>
+
+                        <input
+                            type="number"
+                            id="inputPlazo"
+                            min="1"
+                            required>
+
+                    </div>
+
+                </div>
+
+            </form>
+
+        </div>
+
+        <div class="modalFooter">
+
+            <button
+                type="button"
+                id="btnCancelarNuevaFactura">
+
+                Cancelar
+
+            </button>
+
+            <button
+                type="submit"
+                form="formNuevaFactura"
+                id="btnGuardarNuevaFactura">
+
+                Guardar Factura
+
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
+
+    <!-- ===================================================== -->
+    <!-- MODAL HISTORIAL DE COBROS                            -->
+    <!-- ===================================================== -->
+
+    <div
+        id="modalHistorial"
+        class="modal hidden">
+
+        <div class="modalWindow large">
+
+            <div class="modalHeader">
+
+                <h2>
+
+                    Historial de Cobros
+
+                </h2>
+
+                <button
+                    id="btnCerrarHistorial"
+                    class="closeButton">
+
+                    ✕
+
+                </button>
+
+<label for="cmbVendedorHistorial">Vendedor:</label>
+
+<select id="cmbVendedorHistorial">
+    <option value="">Todos los vendedores</option>
+</select>
+
+<button
+    type="button"
+    id="btnExportarHistorial"
+    class="btnPrimary">
+    Exportar Excel
+</button>
+            </div>
+
+            <div class="modalBody">
+
+                <table id="tablaHistorial">
+
+                    <thead>
+
+                        <tr>
+
+                            <th>Factura</th>
+                            <th>Cliente</th>
+                            <th>Ruta</th>
+                            <th>Vendedor</th>
+                            <th>Monto</th>
+                            <th>Fecha Pago</th>
+                            <th>Usuario</th>
+
+                        </tr>
+
+                    </thead>
+
+                    <tbody id="tbodyHistorial">
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+
+    <!-- ===================================================== -->
+    <!-- MODAL NOTAS                                          -->
+    <!-- ===================================================== -->
+
+    <div
+        id="modalNotas"
+        class="modal hidden">
+
+        <div class="modalWindow">
+
+            <div class="modalHeader">
+
+                <h2>
+
+                    Notas
+
+                </h2>
+
+                <button
+                    id="btnCerrarNotas"
+                    class="closeButton">
+
+                    ✕
+
+                </button>
+
+            </div>
+
+            <div class="modalBody">
+
+                <textarea
+                    id="txtNotas"
+                    placeholder="Escriba aquí cualquier observación..."
+                    rows="10">
+
+                </textarea>
+
+            </div>
+
+            <div class="modalFooter">
+
+                <button
+                    id="btnGuardarNotas">
+
+                    Guardar
+
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+
+    <!-- ===================================================== -->
+    <!-- MODAL CONFIRMACIÓN                                   -->
+    <!-- ===================================================== -->
+
+    <div
+        id="modalConfirmacion"
+        class="modal hidden">
+
+        <div class="modalWindow small">
+
+            <div class="modalHeader">
+
+                <h2>
+
+                    Confirmación
+
+                </h2>
+
+            </div>
+
+            <div class="modalBody">
+
+                <p id="lblConfirmacion">
+
+                </p>
+
+            </div>
+
+            <div class="modalFooter">
+
+                <button id="btnCancelar">
+
+                    Cancelar
+
+                </button>
+
+                <button id="btnAceptar">
+
+                    Aceptar
+
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+<!-- ===================================================== -->
+<!-- MODAL AUDITORÍA                                       -->
+<!-- ===================================================== -->
+
+<div id="modalAuditoria" class="modal hidden">
+
+    <div class="modalWindow auditoriaWindow">
+
+        <div class="modalHeader">
+
+            <h2>Auditoría del sistema</h2>
+
+            <button
+                id="btnCerrarAuditoria"
+                class="closeButton">
+
+                ✕
+
+            </button>
+
+        </div>
+
+        <div class="modalBody auditoriaBody">
+
+            <div class="auditoriaToolbar">
+
+                <input
+                    type="text"
+                    id="txtBuscarAuditoria"
+                    placeholder="Buscar factura, cliente, usuario o acción...">
+
+            </div>
+
+            <div class="tableContainer auditoriaTableContainer">
+
+                <table id="tablaAuditoria">
+
+                    <thead>
+
+                        <tr>
+
+                            <th>Fecha y hora</th>
+                            <th>Acción</th>
+                            <th>Factura</th>
+                            <th>Cliente</th>
+                            <th>Detalle</th>
+                            <th>Usuario</th>
+
+                        </tr>
+
+                    </thead>
+
+                    <tbody id="tbodyAuditoria"></tbody>
+
+                </table>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<!-- ===================================================== -->
+<!-- MODAL ADMINISTRACIÓN DE CLIENTES                     -->
+<!-- ===================================================== -->
+
+<div id="modalClientes" class="modal hidden">
+
+    <div class="modalWindow auditoriaWindow">
+
+        <div class="modalHeader">
+
+            <h2>Administración de Clientes</h2>
+
+            <button
+                id="btnCerrarClientes"
+                class="closeButton">
+                ✕
+            </button>
+
+        </div>
+
+        <div class="modalBody">
+
+            <div class="toolbar">
+
+                <input
+                    type="text"
+                    id="txtBuscarClientes"
+                    placeholder="Buscar por código, cliente, ruta o vendedor...">
+
+                <select id="cmbEstadoCliente">
+		<option value="Cheque posfechado">
+    		Cheque posfechado
+		</option>
+                    <option value="activos">Clientes activos</option>
+                    <option value="inactivos">Clientes inactivos</option>
+                    <option value="todos">Todos los clientes</option>
+                </select>
+
+                <button id="btnNuevoCliente">
+                    Nuevo Cliente
+                </button>
+
+                <button id="btnImportarClientes">
+                    Importar Excel
+                </button>
+
+                <input
+                    type="file"
+                    id="archivoClientesExcel"
+                    accept=".xlsx,.xls"
+                    class="hidden">
+
+            </div>
+
+            <div class="tableContainer">
+
+                <table id="tablaClientes">
+
+                    <thead>
+                        <tr>
+                            <th>Código</th>
+                            <th>Cliente</th>
+                            <th>Vendedor</th>
+                            <th>Ruta</th>
+                            <th>Plazo</th>
+                            <th>Contacto</th>
+                            <th>Teléfono</th>
+                            <th>Estado</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+
+                    <tbody id="tbodyClientes">
+
+                        <tr>
+                            <td colspan="9">
+                                No hay clientes cargados.
+                            </td>
+                        </tr>
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<!-- ===================================================== -->
+<!-- MODAL NUEVO CLIENTE                                  -->
+<!-- ===================================================== -->
+
+<div id="modalNuevoCliente" class="modal hidden">
+
+    <div class="modalWindow large">
+
+        <div class="modalHeader">
+
+            <h2>Nuevo Cliente</h2>
+
+            <button
+                id="btnCerrarNuevoCliente"
+                class="closeButton">
+                ✕
+            </button>
+
+        </div>
+
+        <div class="modalBody">
+
+            <form id="formNuevoCliente">
+
+                <div class="formGrid">
+
+                    <div class="formGroup">
+                        <label for="clienteCodigo">
+                            Código
+                        </label>
+
+                        <input
+                            type="text"
+                            id="clienteCodigo"
+                            required>
+                    </div>
+
+                    <div class="formGroup">
+                        <label for="clienteNombre">
+                            Nombre del cliente
+                        </label>
+
+                        <input
+                            type="text"
+                            id="clienteNombre"
+                            required>
+                    </div>
+
+                    <div class="formGroup">
+                        <label for="clienteVendedor">
+                            Vendedor
+                        </label>
+
+                        <input
+                            type="text"
+                            id="clienteVendedor"
+                            required>
+                    </div>
+
+                    <div class="formGroup">
+                        <label for="clienteRuta">
+                            Ruta
+                        </label>
+
+                        <input
+                            type="text"
+                            id="clienteRuta"
+                            required>
+                    </div>
+
+                    <div class="formGroup">
+                        <label for="clientePlazo">
+                            Plazo en días
+                        </label>
+
+                        <input
+                            type="number"
+                            id="clientePlazo"
+                            min="1"
+                            required>
+                    </div>
+
+                    <div class="formGroup">
+                        <label for="clienteContacto">
+                            Contacto
+                        </label>
+
+                        <input
+                            type="text"
+                            id="clienteContacto">
+                    </div>
+
+                    <div class="formGroup">
+                        <label for="clienteTelefono">
+                            Teléfono
+                        </label>
+
+                        <input
+                            type="tel"
+                            id="clienteTelefono">
+                    </div>
+
+                </div>
+
+            </form>
+
+        </div>
+
+        <div class="modalFooter">
+
+            <button
+                type="button"
+                id="btnCancelarNuevoCliente">
+                Cancelar
+            </button>
+
+            <button
+                type="submit"
+                form="formNuevoCliente"
+                id="btnGuardarNuevoCliente">
+                Guardar Cliente
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
+
+    <!-- ===================================================== -->
+<!-- JAVASCRIPT                                            -->
+<!-- ===================================================== -->
+
+<script src="config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+<script type="module" src="app.js"></script>
+
+</body>
+</html>

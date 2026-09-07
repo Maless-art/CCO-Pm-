@@ -1,0 +1,1804 @@
+/*==================================================
+CONTROL DE COBROS OPERATIVOS
+Versión 0.1.0 Alpha
+==================================================*/
+
+
+:root{
+
+    --color-fondo:#f5f6f8;
+    --color-panel:#ffffff;
+
+    --color-rojo:#d32f2f;
+    --color-rojo-hover:#b71c1c;
+
+    --color-amarillo:#f4b400;
+    --color-amarillo-hover:#d89d00;
+
+    --color-verde:#2e7d32;
+    --color-verde-claro:#e8f5e9;
+
+    --color-gris:#757575;
+    --color-gris-claro:#ececec;
+
+    --texto:#2c2c2c;
+
+    --sombra:0 3px 12px rgba(0,0,0,.12);
+
+    --radio:10px;
+
+}
+
+
+
+*{
+
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+
+}
+
+
+
+html{
+
+    height:100%;
+
+}
+
+
+
+body{
+
+    background:var(--color-fondo);
+
+    font-family:"Segoe UI",Tahoma,Geneva,Verdana,sans-serif;
+
+    color:var(--texto);
+
+    min-height:100vh;
+
+}
+
+
+
+.hidden{
+
+    display:none;
+
+}
+
+
+
+/*==================================================
+SPLASH
+==================================================*/
+
+
+#splashScreen{
+
+    position:fixed;
+
+    inset:0;
+
+    background:white;
+
+    display:flex;
+
+    justify-content:center;
+
+    align-items:center;
+
+    z-index:9999;
+
+}
+
+
+
+.splashContainer{
+
+    width:420px;
+
+    text-align:center;
+
+}
+
+
+
+
+
+
+.splashContainer h1{
+
+    font-size:28px;
+
+    margin-bottom:10px;
+
+    color:#333;
+
+}
+
+
+
+.version{
+
+    position:fixed;
+
+    bottom:18px;
+
+    left:50%;
+
+    transform:translateX(-50%);
+
+    color:#888;
+
+    font-size:14px;
+
+}
+
+
+.loaderCircle{
+
+    width:60px;
+
+    height:60px;
+
+    border-radius:50%;
+
+    border:6px solid #ececec;
+
+    border-top:6px solid var(--color-rojo);
+
+    margin:auto;
+
+    animation:girar 1s linear infinite;
+
+}
+
+
+
+
+
+#loadingText{
+
+    margin-top:18px;
+
+    color:#666;
+
+    font-size:15px;
+
+}
+
+
+
+@keyframes girar{
+
+    from{
+
+        transform:rotate(0deg);
+
+    }
+
+    to{
+
+        transform:rotate(360deg);
+
+    }
+
+}
+
+
+
+/*==================================================
+CONTENEDOR PRINCIPAL
+==================================================*/
+
+
+#app{
+
+    width:100%;
+
+    min-height:100vh;
+
+}
+
+/*==================================================
+HEADER
+==================================================*/
+
+header{
+
+    height:70px;
+
+    background:var(--color-panel);
+
+    box-shadow:var(--sombra);
+
+    display:flex;
+
+    justify-content:space-between;
+
+    align-items:center;
+
+    padding:0 25px;
+
+}
+
+.headerLeft h2{
+
+    font-size:24px;
+
+    font-weight:600;
+
+}
+
+.onlineStatus{
+
+    color:var(--color-verde);
+
+    font-weight:600;
+
+    font-size:15px;
+
+}
+
+
+
+/*==================================================
+MENÚ SUPERIOR
+==================================================*/
+
+nav{
+
+    background:white;
+
+    display:flex;
+
+    gap:12px;
+
+    padding:15px 20px;
+
+    border-bottom:1px solid #e5e5e5;
+
+}
+
+.menuButton{
+
+    border:none;
+
+    background:var(--color-amarillo);
+
+    color:#222;
+
+    padding:12px 24px;
+
+    border-radius:var(--radio);
+
+    cursor:pointer;
+
+    font-size:15px;
+
+    font-weight:600;
+
+    transition:.25s;
+
+}
+
+.menuButton:hover{
+
+    background:var(--color-amarillo-hover);
+
+
+
+}
+
+.menuButton:active{
+
+    transform:scale(.96);
+
+}
+
+.menuButton.active{
+
+    background:var(--color-rojo);
+
+    color:white;
+
+}
+
+
+
+/*==================================================
+CONTENIDO
+==================================================*/
+
+main{
+
+    padding:25px;
+
+}
+
+
+
+/*==================================================
+PANELES
+==================================================*/
+
+.panelActivo{
+
+    display:block;
+
+}
+
+.panelOculto{
+
+    display:none;
+
+}
+
+
+
+/*==================================================
+CARDS DASHBOARD
+==================================================*/
+
+.cardsContainer{
+
+    display:grid;
+
+    grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+
+    gap:20px;
+
+    margin-bottom:30px;
+
+}
+
+.dashboardCard{
+
+    background:white;
+
+    border-radius:var(--radio);
+
+    box-shadow:var(--sombra);
+
+    padding:22px;
+
+    transition:.25s;
+
+}
+
+.dashboardCard:hover{
+
+    transform:translateY(-4px);
+
+}
+
+.cardTitle{
+
+    color:#666;
+
+    font-size:14px;
+
+    display:block;
+
+    margin-bottom:10px;
+
+}
+
+.dashboardCard h2{
+
+    font-size:32px;
+
+    font-weight:700;
+
+}
+
+
+
+/*==================================================
+COLORES TARJETAS
+==================================================*/
+
+.green{
+
+    border-left:7px solid #4CAF50;
+
+}
+
+.yellow{
+
+    border-left:7px solid #FFC107;
+
+}
+
+.red{
+
+    border-left:7px solid #D32F2F;
+
+}
+
+.blue{
+
+    border-left:7px solid #1976D2;
+
+}
+
+
+
+/*==================================================
+PANEL INFERIOR
+==================================================*/
+
+.dashboardInfo{
+
+    margin-top:20px;
+
+}
+
+.infoBox{
+
+    background:white;
+
+    padding:25px;
+
+    border-radius:var(--radio);
+
+    box-shadow:var(--sombra);
+
+}
+
+.infoBox h3{
+
+    margin-bottom:15px;
+
+}
+
+.infoBox p{
+
+    line-height:1.7;
+
+    color:#555;
+
+}
+/*==================================================
+TOOLBAR
+==================================================*/
+
+.toolbar{
+
+    display:flex;
+    flex-wrap:wrap;
+    gap:12px;
+
+    align-items:center;
+
+    margin-bottom:20px;
+
+}
+
+.toolbar input,
+.toolbar select{
+
+    height:42px;
+
+    border:1px solid #d9d9d9;
+
+    border-radius:8px;
+
+    padding:0 12px;
+
+    background:white;
+
+    font-size:14px;
+
+    outline:none;
+
+    transition:.20s;
+
+}
+
+.toolbar input{
+
+    width:300px;
+
+}
+
+.toolbar select{
+
+    min-width:180px;
+
+}
+
+.toolbar input:focus,
+.toolbar select:focus{
+
+    border-color:var(--color-rojo);
+
+    box-shadow:0 0 0 3px rgba(211,47,47,.12);
+
+}
+
+.toolbar button{
+
+    height:42px;
+
+    padding:0 18px;
+
+    border:none;
+
+    border-radius:8px;
+
+    cursor:pointer;
+
+    background:var(--color-amarillo);
+
+    font-weight:600;
+
+    transition:.20s;
+
+}
+
+.toolbar button:hover{
+
+    background:var(--color-amarillo-hover);
+
+}
+
+
+
+/*==================================================
+TABLAS
+==================================================*/
+
+.tableContainer{
+
+    background:white;
+
+    border-radius:var(--radio);
+
+    box-shadow:var(--sombra);
+
+    overflow:auto;
+
+    max-height:620px;
+
+}
+
+table{
+
+    width:100%;
+
+    border-collapse:collapse;
+
+    min-width:1450px;
+
+}
+
+thead{
+
+    position:sticky;
+
+    top:0;
+
+    z-index:10;
+
+}
+
+thead tr{
+
+    background:var(--color-rojo);
+
+    color:white;
+
+}
+
+th{
+
+    padding:14px;
+
+    text-align:left;
+
+    font-size:14px;
+
+    font-weight:600;
+
+    white-space:nowrap;
+
+}
+
+td{
+
+    padding:13px;
+
+    border-bottom:1px solid #ececec;
+
+    font-size:14px;
+
+    white-space:nowrap;
+
+}
+
+tbody tr{
+
+    transition:.18s;
+
+}
+
+tbody tr:hover{
+
+    background:#fff8e6;
+
+}
+
+
+
+/*==================================================
+ESTADOS
+==================================================*/
+
+.estadoVerde{
+
+    background:#E8F5E9;
+
+}
+
+.estadoAmarillo{
+
+    background:#FFF8E1;
+
+}
+
+.estadoRojo{
+
+    background:#FFEBEE;
+
+}
+
+.estadoGris{
+
+    background:#F2F2F2;
+
+    color:#8b8b8b;
+
+}
+
+
+
+/*==================================================
+CHECKBOX PAGADO
+==================================================*/
+
+.checkPagado{
+
+    width:20px;
+
+    height:20px;
+
+    cursor:pointer;
+
+}
+
+
+
+/*==================================================
+BOTÓN NOTAS
+==================================================*/
+
+.btnNotas{
+
+    width:34px;
+
+    height:34px;
+
+    border:none;
+
+    border-radius:8px;
+
+    cursor:pointer;
+
+    background:#eeeeee;
+
+    transition:.20s;
+
+}
+
+.btnNotas:hover{
+
+    background:#d9d9d9;
+
+}
+
+
+
+/*==================================================
+SCROLL
+==================================================*/
+
+::-webkit-scrollbar{
+
+    width:10px;
+    height:10px;
+
+}
+
+::-webkit-scrollbar-track{
+
+    background:#ececec;
+
+}
+
+::-webkit-scrollbar-thumb{
+
+    background:#bdbdbd;
+
+    border-radius:20px;
+
+}
+
+::-webkit-scrollbar-thumb:hover{
+
+    background:#9e9e9e;
+
+}
+/*==================================================
+MODALES
+==================================================*/
+
+.modal{
+
+    position:fixed;
+    inset:0;
+
+    background:rgba(0,0,0,.45);
+
+    display:flex;
+
+    justify-content:center;
+    align-items:center;
+
+    z-index:999;
+
+}
+
+.modalWindow{
+
+    background:white;
+
+    width:650px;
+
+    border-radius:12px;
+
+    box-shadow:0 8px 30px rgba(0,0,0,.25);
+
+    overflow:hidden;
+
+}
+
+.modalWindow.large{
+
+    width:1100px;
+
+}
+
+.modalWindow.small{
+
+    width:450px;
+
+}
+
+.modalHeader{
+
+    height:60px;
+
+    background:#fafafa;
+
+    border-bottom:1px solid #ececec;
+
+    display:flex;
+
+    justify-content:space-between;
+
+    align-items:center;
+
+    padding:0 20px;
+
+}
+
+.modalHeader h2{
+
+    font-size:20px;
+
+    font-weight:600;
+
+}
+
+.closeButton{
+
+    border:none;
+
+    background:none;
+
+    font-size:24px;
+
+    cursor:pointer;
+
+    color:#666;
+
+    transition:.20s;
+
+}
+
+.closeButton:hover{
+
+    color:var(--color-rojo);
+
+}
+
+.modalBody{
+
+    padding:20px;
+
+}
+
+.modalFooter{
+
+    padding:18px;
+
+    display:flex;
+
+    justify-content:flex-end;
+
+    gap:12px;
+
+    border-top:1px solid #ececec;
+
+}
+
+.modalFooter button{
+
+    border:none;
+
+    cursor:pointer;
+
+    padding:10px 22px;
+
+    border-radius:8px;
+
+    font-weight:600;
+
+}
+
+#btnAceptar{
+
+    background:var(--color-rojo);
+
+    color:white;
+
+}
+
+#btnAceptar:hover{
+
+    background:var(--color-rojo-hover);
+
+}
+
+#btnCancelar{
+
+    background:#d9d9d9;
+
+}
+
+#btnCancelar:hover{
+
+    background:#c8c8c8;
+
+}
+
+
+
+/*==================================================
+TEXTAREA
+==================================================*/
+
+textarea{
+
+    width:100%;
+
+    resize:vertical;
+
+    border:1px solid #d9d9d9;
+
+    border-radius:8px;
+
+    padding:15px;
+
+    font-family:"Segoe UI";
+
+    font-size:14px;
+
+    outline:none;
+
+}
+
+textarea:focus{
+
+    border-color:var(--color-rojo);
+
+}
+
+
+
+/*==================================================
+CONFIGURACIÓN
+==================================================*/
+
+.configGrid{
+
+    display:grid;
+
+    grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+
+    gap:20px;
+
+}
+
+.configButton{
+
+    height:80px;
+
+    border:none;
+
+    border-radius:10px;
+
+    background:white;
+
+    box-shadow:var(--sombra);
+
+    cursor:pointer;
+
+    font-size:15px;
+
+    font-weight:600;
+
+    transition:.20s;
+
+}
+
+.configButton:hover{
+
+    transform:translateY(-3px);
+
+}
+
+
+
+/*==================================================
+FOOTER
+==================================================*/
+
+footer{
+
+    height:55px;
+
+    background:white;
+
+    margin-top:425px;
+
+    border-top:1px solid #ececec;
+
+    display:flex;
+
+    justify-content:space-between;
+
+    align-items:center;
+
+    padding:0 25px;
+
+    color:#777;
+
+    font-size:14px;
+
+}
+
+
+
+/*==================================================
+ANIMACIONES
+==================================================*/
+
+button{
+
+    transition:.20s;
+
+}
+
+button:active{
+
+    transform:scale(.97);
+
+}
+
+.fadeIn{
+
+    animation:fadeIn .25s ease;
+
+}
+
+@keyframes fadeIn{
+
+    from{
+
+        opacity:0;
+
+        transform:translateY(10px);
+
+    }
+
+    to{
+
+        opacity:1;
+
+        transform:translateY(0);
+
+    }
+
+}
+
+
+
+/*==================================================
+RESPONSIVE PC
+==================================================*/
+
+@media(max-width:1200px){
+
+    .cardsContainer{
+
+        grid-template-columns:repeat(2,1fr);
+
+    }
+
+}
+
+@media(max-width:800px){
+
+    .cardsContainer{
+
+        grid-template-columns:1fr;
+
+    }
+
+}
+
+.hidden{
+    display:none !important;
+}
+
+.dashboardCard{
+    cursor:pointer;
+}
+
+/*==================================================
+FORMULARIO NUEVA FACTURA
+==================================================*/
+
+.formGrid{
+
+    display:grid;
+
+    grid-template-columns:repeat(3,1fr);
+
+    gap:18px;
+
+}
+
+.formGroup{
+
+    display:flex;
+
+    flex-direction:column;
+
+    gap:7px;
+
+}
+
+.formGroup label{
+
+    font-size:13px;
+
+    font-weight:600;
+
+    color:#555;
+
+}
+
+.formGroup input,
+.formGroup select{
+
+    height:42px;
+
+    border:1px solid #d9d9d9;
+
+    border-radius:8px;
+
+    padding:0 12px;
+
+    font-family:"Segoe UI",Tahoma,Geneva,Verdana,sans-serif;
+
+    font-size:14px;
+
+    outline:none;
+
+    background:white;
+
+}
+
+.formGroup input:focus,
+.formGroup select:focus{
+
+    border-color:var(--color-rojo);
+
+    box-shadow:0 0 0 3px rgba(211,47,47,.12);
+
+}
+
+#btnGuardarNuevaFactura{
+
+    background:var(--color-rojo);
+
+    color:white;
+
+}
+
+#btnGuardarNuevaFactura:hover{
+
+    background:var(--color-rojo-hover);
+
+}
+
+#btnCancelarNuevaFactura{
+
+    background:#d9d9d9;
+
+}
+
+#btnCancelarNuevaFactura:hover{
+
+    background:#c8c8c8;
+
+}
+
+@media(max-width:1100px){
+
+    .formGrid{
+
+        grid-template-columns:repeat(2,1fr);
+
+    }
+
+}
+
+@media(max-width:700px){
+
+    .formGrid{
+
+        grid-template-columns:1fr;
+
+    }
+
+}
+
+/*==================================================
+INICIO DE SESIÓN
+==================================================*/
+
+.loginScreen{
+    position:fixed;
+    inset:0;
+    background:#f5f6f8;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    z-index:10000;
+}
+
+.loginCard{
+    width:420px;
+    background:white;
+    border-radius:12px;
+    box-shadow:0 10px 35px rgba(0,0,0,.16);
+    padding:34px;
+    position:relative;
+}
+
+.loginLogo{
+    width:82px;
+    height:82px;
+    margin:0 auto 20px;
+    border-radius:50%;
+    background:var(--color-rojo);
+    color:white;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:28px;
+    font-weight:700;
+}
+
+.loginCard h1{
+    text-align:center;
+    font-size:24px;
+    margin-bottom:8px;
+}
+
+.loginSubtitle{
+    text-align:center;
+    color:#777;
+    margin-bottom:28px;
+}
+
+.loginGroup{
+    display:flex;
+    flex-direction:column;
+    gap:7px;
+    margin-bottom:18px;
+}
+
+.loginGroup label{
+    font-size:13px;
+    font-weight:600;
+    color:#555;
+}
+
+.loginGroup input{
+    height:44px;
+    border:1px solid #d9d9d9;
+    border-radius:8px;
+    padding:0 12px;
+    font-size:14px;
+    outline:none;
+}
+
+.loginGroup input:focus{
+    border-color:var(--color-rojo);
+    box-shadow:0 0 0 3px rgba(211,47,47,.12);
+}
+
+#btnIniciarSesion{
+    width:100%;
+    height:44px;
+    border:none;
+    border-radius:8px;
+    background:var(--color-amarillo);
+    font-weight:700;
+    cursor:pointer;
+}
+
+#btnIniciarSesion:hover{
+    background:var(--color-amarillo-hover);
+}
+
+.loginError{
+    margin-bottom:15px;
+    color:var(--color-rojo);
+    font-size:13px;
+    text-align:center;
+}
+
+.loginVersion{
+    margin-top:24px;
+    text-align:center;
+    color:#999;
+    font-size:13px;
+}
+
+
+/*==================================================
+USUARIO EN HEADER
+==================================================*/
+
+.headerRight{
+    display:flex;
+    align-items:center;
+    gap:18px;
+}
+
+.userInfo{
+    display:flex;
+    flex-direction:column;
+    align-items:flex-end;
+    line-height:1.2;
+}
+
+#nombreUsuario{
+    font-weight:600;
+    font-size:14px;
+}
+
+#rolUsuario{
+    font-size:12px;
+    color:#777;
+}
+
+#btnCerrarSesion{
+    border:none;
+    background:#e0e0e0;
+    color:#333;
+    height:38px;
+    padding:0 14px;
+    border-radius:8px;
+    cursor:pointer;
+    font-weight:600;
+}
+
+#btnCerrarSesion:hover{
+    background:#cccccc;
+}
+
+.accionesFactura{
+    display:flex;
+    gap:7px;
+}
+
+.btnEditarFactura,
+.btnAnularFactura{
+    border:none;
+    border-radius:6px;
+    padding:7px 11px;
+    cursor:pointer;
+    font-weight:600;
+    font-size:12px;
+}
+
+.btnEditarFactura{
+    background:var(--color-amarillo);
+    color:#222;
+}
+
+.btnEditarFactura:hover{
+    background:var(--color-amarillo-hover);
+}
+
+.btnAnularFactura{
+    background:#e0e0e0;
+    color:#333;
+}
+
+.btnAnularFactura:hover{
+    background:#c9c9c9;
+}
+
+/*========== NUEVA INTERFAZ ========*/
+/*==================================================
+AJUSTE VISUAL CORPORATIVO
+==================================================*/
+
+:root{
+    --color-fondo:#f3f4f6;
+    --color-panel:#ffffff;
+    --color-rojo:#c62828;
+    --color-rojo-hover:#a91f1f;
+    --color-amarillo:#f2b705;
+    --color-amarillo-hover:#d9a300;
+    --color-verde:#238636;
+    --texto:#1f2937;
+    --texto-secundario:#667085;
+    --borde:#d9dde3;
+    --sombra:0 1px 3px rgba(16,24,40,.08);
+    --radio:6px;
+}
+
+body{
+    background:var(--color-fondo);
+    color:var(--texto);
+}
+
+/* Header compacto */
+
+header{
+    height:58px;
+    padding:0 20px;
+    background:#fff;
+    border-bottom:1px solid var(--borde);
+    box-shadow:none;
+}
+
+.headerLeft h2{
+    font-size:19px;
+    font-weight:650;
+    letter-spacing:-.2px;
+}
+
+.headerRight{
+    gap:14px;
+}
+
+.userInfo{
+    padding-right:14px;
+    border-right:1px solid var(--borde);
+}
+
+#nombreUsuario{
+    font-size:13px;
+    font-weight:650;
+}
+
+#rolUsuario{
+    font-size:11px;
+    color:var(--texto-secundario);
+}
+
+.onlineStatus{
+    font-size:12px;
+    font-weight:600;
+    color:var(--color-verde);
+}
+
+#btnCerrarSesion{
+    height:34px;
+    padding:0 13px;
+    border:1px solid var(--borde);
+    border-radius:5px;
+    background:#fff;
+    font-size:12px;
+}
+
+#btnCerrarSesion:hover{
+    background:#f3f4f6;
+}
+
+/* Navegación tipo software empresarial */
+
+nav{
+    height:52px;
+    padding:0 20px;
+    gap:26px;
+    align-items:stretch;
+    background:#fff;
+    border-bottom:1px solid var(--borde);
+}
+
+.menuButton{
+    height:52px;
+    padding:0 2px;
+    border:none;
+    border-bottom:3px solid transparent;
+    border-radius:0;
+    background:transparent;
+    color:#4b5563;
+    font-size:13px;
+    font-weight:600;
+    box-shadow:none;
+    transform:none;
+}
+
+.menuButton:hover{
+    background:transparent;
+    color:#111827;
+    border-bottom-color:#d1d5db;
+    transform:none;
+}
+
+.menuButton:active{
+    transform:none;
+}
+
+.menuButton.active{
+    background:transparent;
+    color:var(--color-rojo);
+    border-bottom-color:var(--color-rojo);
+}
+
+/* Contenido más compacto */
+
+main{
+    padding:20px;
+}
+
+/* Tarjetas sobrias */
+
+.cardsContainer{
+    grid-template-columns:repeat(5,minmax(170px,1fr));
+    gap:14px;
+    margin-bottom:20px;
+}
+
+.dashboardCard{
+    min-height:108px;
+    padding:18px 20px;
+    border:1px solid var(--borde);
+    border-radius:var(--radio);
+    box-shadow:var(--sombra);
+    cursor:pointer;
+    position:relative;
+}
+
+.dashboardCard:hover{
+    transform:none;
+    border-color:#bfc5ce;
+    box-shadow:0 2px 6px rgba(16,24,40,.10);
+}
+
+.dashboardCard::before{
+    content:"";
+    position:absolute;
+    top:0;
+    left:0;
+    right:0;
+    height:3px;
+    background:#9ca3af;
+    border-radius:6px 6px 0 0;
+}
+
+.dashboardCard.green,
+.dashboardCard.yellow,
+.dashboardCard.red,
+.dashboardCard.blue{
+    border-left:1px solid var(--borde);
+}
+
+.dashboardCard.green::before{
+    background:#3b9b55;
+}
+
+.dashboardCard.yellow::before{
+    background:#e2ac00;
+}
+
+.dashboardCard.red::before{
+    background:#d33a3a;
+}
+
+.dashboardCard.blue::before{
+    background:#667085;
+}
+
+.cardTitle{
+    margin-bottom:12px;
+    color:var(--texto-secundario);
+    font-size:12px;
+    font-weight:600;
+    text-transform:uppercase;
+    letter-spacing:.35px;
+}
+
+.dashboardCard h2{
+    font-size:27px;
+    line-height:1;
+    font-weight:700;
+    color:#111827;
+}
+
+/* Panel inferior */
+
+.dashboardInfo{
+    margin-top:0;
+}
+
+.infoBox{
+    padding:20px 24px;
+    border:1px solid var(--borde);
+    border-radius:var(--radio);
+    box-shadow:var(--sombra);
+}
+
+.infoBox h3{
+    margin-bottom:8px;
+    font-size:15px;
+    font-weight:650;
+}
+
+.infoBox p{
+    line-height:1.55;
+    color:var(--texto-secundario);
+    font-size:13px;
+}
+
+/* Barra de herramientas */
+
+.toolbar{
+    gap:9px;
+    margin-bottom:14px;
+}
+
+.toolbar input,
+.toolbar select,
+.toolbar button{
+    height:38px;
+    border-radius:5px;
+    font-size:13px;
+}
+
+.toolbar input{
+    width:290px;
+}
+
+.toolbar button{
+    padding:0 14px;
+}
+
+/* Tablas más tipo ERP */
+
+.tableContainer{
+    border:1px solid var(--borde);
+    border-radius:var(--radio);
+    box-shadow:none;
+}
+
+thead tr{
+    background:#343a40;
+}
+
+th{
+    padding:11px 12px;
+    font-size:12px;
+}
+
+td{
+    padding:10px 12px;
+    font-size:12px;
+}
+
+tbody tr:hover{
+    background:#f7f8fa;
+}
+
+/* Footer discreto */
+
+footer{
+    height:44px;
+    margin-top:525px;
+    padding:0 20px;
+    border-top:1px solid var(--borde);
+    background:#fff;
+    font-size:12px;
+}
+
+/* Botones de acción */
+
+.btnEditarFactura,
+.btnAnularFactura{
+    padding:6px 10px;
+    border-radius:4px;
+    font-size:11px;
+}
+
+.btnEditarFactura{
+    background:#f3c544;
+}
+
+.btnAnularFactura{
+    background:#eceff2;
+}
+
+/* Ajuste para pantallas medianas */
+
+@media(max-width:1400px){
+    .cardsContainer{
+        grid-template-columns:repeat(3,1fr);
+    }
+}
+html,
+body{
+    min-height:100%;
+}
+
+body{
+    min-height:100vh;
+}
+
+#app{
+    min-height:100vh;
+    display:flex;
+    flex-direction:column;
+}
+
+main{
+    flex:1;
+    width:100%;
+}
+
+footer{
+    margin-top:auto;
+    flex-shrink:0;
+}
+
+/*==================================================
+AUDITORÍA
+==================================================*/
+
+.auditoriaWindow{
+    width:94vw;
+    max-width:1500px;
+}
+
+.auditoriaBody{
+    overflow:hidden;
+}
+
+.auditoriaToolbar{
+    margin-bottom:14px;
+}
+
+#txtBuscarAuditoria{
+    width:360px;
+    height:38px;
+    padding:0 12px;
+    border:1px solid var(--borde);
+    border-radius:5px;
+    outline:none;
+}
+
+#txtBuscarAuditoria:focus{
+    border-color:var(--color-rojo);
+}
+
+.auditoriaTableContainer{
+    max-height:65vh;
+    overflow:auto;
+}
+
+#tablaAuditoria{
+    min-width:1100px;
+}
+
+#tablaAuditoria td{
+    vertical-align:top;
+}
+
+.auditoriaDetalle{
+    min-width:300px;
+    white-space:normal;
+}
+.logoSplash{
+    width:220px;
+    height:auto;
+    display:block;
+    margin:0 auto 20px;
+}
+
+.selectorClienteFactura {
+    position: relative;
+}
+
+.sugerenciasClienteFactura {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 70px;
+    z-index: 1000;
+
+    background: #ffffff;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+
+    max-height: 240px;
+    overflow-y: auto;
+
+    box-shadow: 0 8px 20px rgba(0,0,0,0.12);
+}
+
+.sugerenciaCliente {
+    padding: 10px 12px;
+    cursor: pointer;
+    border-bottom: 1px solid #eeeeee;
+}
+
+.sugerenciaCliente:last-child {
+    border-bottom: none;
+}
+
+.sugerenciaCliente:hover {
+    background: #f3f4f6;
+}
+
+.sugerenciaCliente.vacia {
+    cursor: default;
+    color: #6b7280;
+}
+
+.sugerenciaCliente.vacia:hover {
+    background: #ffffff;
+}
