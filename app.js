@@ -2588,14 +2588,18 @@ async function registrarAuditoriaClienteEdicion(
                     `ruta=${anterior?.ruta || ""}, ` +
                     `plazo=${anterior?.plazo || ""}, ` +
                     `contacto=${anterior?.contacto || ""}, ` +
-                    `telefono=${anterior?.telefono || ""}. ` +
+                    `telefono=${anterior?.telefono || ""}, ` +
+                    `direccion=${anterior?.direccion || ""}, ` +
+                    `operador=${anterior?.operador || ""}. ` +
                     `Después: ` +
                     `cliente=${nuevo.cliente || ""}, ` +
                     `vendedor=${nuevo.vendedor || ""}, ` +
                     `ruta=${nuevo.ruta || ""}, ` +
                     `plazo=${nuevo.plazo || ""}, ` +
                     `contacto=${nuevo.contacto || ""}, ` +
-                    `telefono=${nuevo.telefono || ""}.`,
+                    `telefono=${nuevo.telefono || ""}, ` +
+                    `direccion=${nuevo.direccion || ""}, ` +
+                    `operador=${nuevo.operador || ""}.`,
 
                 usuario:
                     usuarioActual?.correo || "desconocido",
@@ -2884,6 +2888,12 @@ function abrirEditarCliente(idCliente){
     document.getElementById("clienteTelefono").value =
         cliente.telefono || "";
 
+    document.getElementById("clienteDireccion").value =
+        cliente.direccion || "";
+
+    document.getElementById("clienteOperador").value =
+        cliente.operador || "";
+
     formNuevoCliente.dataset.modo = "editar";
     formNuevoCliente.dataset.idCliente = idCliente;
 
@@ -3053,7 +3063,9 @@ function mostrarClientes(){
             normalizarTexto(cliente.codigo).includes(texto) ||
             normalizarTexto(cliente.cliente).includes(texto) ||
             normalizarTexto(cliente.vendedor).includes(texto) ||
-            normalizarTexto(cliente.ruta).includes(texto);
+            normalizarTexto(cliente.ruta).includes(texto) ||
+            normalizarTexto(cliente.direccion).includes(texto) ||
+            normalizarTexto(cliente.operador).includes(texto);
 
         const coincideEstado =
             estado === "todos" ||
@@ -3078,7 +3090,7 @@ function mostrarClientes(){
 
         tbodyClientes.innerHTML = `
             <tr>
-                <td colspan="9">
+                <td colspan="11">
                     No hay clientes para mostrar.
                 </td>
             </tr>
@@ -3107,6 +3119,10 @@ function mostrarClientes(){
                 <td>${cliente.contacto || ""}</td>
 
                 <td>${cliente.telefono || ""}</td>
+
+                <td>${cliente.direccion || ""}</td>
+
+                <td>${cliente.operador || ""}</td>
 
                 <td>
                     ${cliente.activo
@@ -3220,8 +3236,18 @@ const idClienteEditado =
             .value
             .trim();
 
+    const direccion =
+        document.getElementById("clienteDireccion")
+            .value
+            .trim();
 
-    if(!codigo || !cliente || !vendedor || !ruta || !plazo){
+    const operador =
+        document.getElementById("clienteOperador")
+            .value
+            .trim();
+
+
+    if(!codigo || !cliente || !vendedor || !ruta || !plazo || !operador){
 
         alert("Complete todos los campos obligatorios.");
 
@@ -3281,6 +3307,8 @@ if(existeDuplicado){
             plazo,
             contacto,
             telefono,
+            direccion,
+            operador,
 
             fechaActualizacion:
                 new Date().toISOString(),
@@ -3300,7 +3328,9 @@ if(existeDuplicado){
             ruta,
             plazo,
             contacto,
-            telefono
+            telefono,
+            direccion,
+            operador
         }
     );
 
@@ -3318,6 +3348,8 @@ if(existeDuplicado){
             plazo,
             contacto,
             telefono,
+            direccion,
+            operador,
 
             activo: true,
 
@@ -3516,13 +3548,26 @@ async function importarClientesExcel(event){
                 )
                 .trim();
 
+            const direccion =
+                String(
+                    fila["Dirección"] || ""
+                )
+                .trim();
+
+            const operador =
+                String(
+                    fila["Operador"] || ""
+                )
+                .trim();
+
 
             if(
                 !codigo ||
                 !cliente ||
                 !vendedor ||
                 !ruta ||
-                !plazo
+                !plazo ||
+                !operador
             ){
 
                 errores++;
@@ -3551,6 +3596,8 @@ async function importarClientesExcel(event){
                     plazo,
                     contacto,
                     telefono,
+                    direccion,
+                    operador,
 
                     activo: true,
 

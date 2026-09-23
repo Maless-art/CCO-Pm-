@@ -1162,12 +1162,9 @@
                 <input
                     type="text"
                     id="txtBuscarClientes"
-                    placeholder="Buscar por código, cliente, ruta o vendedor...">
+                    placeholder="Buscar por código, cliente, ruta, vendedor, dirección u operador...">
 
                 <select id="cmbEstadoCliente">
-		<option value="Cheque posfechado">
-    		Cheque posfechado
-		</option>
                     <option value="activos">Clientes activos</option>
                     <option value="inactivos">Clientes inactivos</option>
                     <option value="todos">Todos los clientes</option>
@@ -1202,6 +1199,8 @@
                             <th>Plazo</th>
                             <th>Contacto</th>
                             <th>Teléfono</th>
+                            <th>Dirección</th>
+                            <th>Operador</th>
                             <th>Estado</th>
                             <th>Acciones</th>
                         </tr>
@@ -1210,7 +1209,7 @@
                     <tbody id="tbodyClientes">
 
                         <tr>
-                            <td colspan="9">
+                            <td colspan="11">
                                 No hay clientes cargados.
                             </td>
                         </tr>
@@ -1327,6 +1326,27 @@
                         <input
                             type="tel"
                             id="clienteTelefono">
+                    </div>
+
+                    <div class="formGroup">
+                        <label for="clienteDireccion">
+                            Dirección
+                        </label>
+
+                        <input
+                            type="text"
+                            id="clienteDireccion">
+                    </div>
+
+                    <div class="formGroup">
+                        <label for="clienteOperador">
+                            Operador
+                        </label>
+
+                        <input
+                            type="text"
+                            id="clienteOperador"
+                            required>
                     </div>
 
                 </div>
