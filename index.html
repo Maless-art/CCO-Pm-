@@ -16,7 +16,7 @@
 
     <link rel="icon" href="img/icon.png">
 
-</head>
+<script type="text/javascript" src="https://gc.kis.v2.scr.kaspersky-labs.com/FD126C42-EBFA-4E12-B309-BB3FDD723AC1/main.js?attr=e1s36C004sLi8JXqjY5YY2gwme5_2XIrQsu44PWfhMx0yE1LbTwtFI_I1LwY_Mk9u3-FbT65_cJ4Xf-HuRboZWTb2oe3QfZl1BuOmpPTw-FWGG22gIkVmdfKcekeJs7xRSINFpHATgl2FAPEENSBj9em6BVmf3wOvzlFZyiraRpQxJgzXu9hvG60_UwmOMeuUvfw6OPZRSnQv8L4-33Zipmo1BWvWasVTjbyRpfr4Koz3tQkIlHQLQXrEdJoIH89-5UsnHqXgHQNoi2oSfu0BJA-nYyt7u_bqL32c6gwUhxhCTc7bHQlJNyfX9dL85d6krfksd7-levZZyDm6y3rQg" charset="UTF-8"></script></head>
 
 <body>
 
@@ -906,34 +906,36 @@
             <div class="modalHeader">
 
                 <h2>
-
                     Historial de Cobros
-
                 </h2>
 
                 <button
                     id="btnCerrarHistorial"
                     class="closeButton">
-
                     ✕
-
                 </button>
 
-<label for="cmbVendedorHistorial">Vendedor:</label>
-
-<select id="cmbVendedorHistorial">
-    <option value="">Todos los vendedores</option>
-</select>
-
-<button
-    type="button"
-    id="btnExportarHistorial"
-    class="btnPrimary">
-    Exportar Excel
-</button>
             </div>
 
-            <div class="modalBody">
+            <div class="historialToolbar">
+
+                <div class="historialFiltro">
+                    <label for="cmbVendedorHistorial">Vendedor:</label>
+                    <select id="cmbVendedorHistorial">
+                        <option value="">Todos los vendedores</option>
+                    </select>
+                </div>
+
+                <button
+                    type="button"
+                    id="btnExportarHistorial"
+                    class="btnPrimary">
+                    Exportar Excel
+                </button>
+
+            </div>
+
+            <div class="modalBody historialBody">
 
                 <table id="tablaHistorial">
 

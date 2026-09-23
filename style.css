@@ -1802,3 +1802,85 @@ AUDITORÍA
 .sugerenciaCliente.vacia:hover {
     background: #ffffff;
 }
+
+
+/*==================================================
+HISTORIAL DE COBROS
+==================================================*/
+
+.historialToolbar{
+    min-height:58px;
+    padding:10px 20px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:16px;
+    background:#fff;
+    border-bottom:1px solid var(--borde);
+}
+
+.historialFiltro{
+    display:flex;
+    align-items:center;
+    gap:10px;
+}
+
+.historialFiltro label{
+    font-size:13px;
+    font-weight:600;
+    color:var(--texto-secundario);
+}
+
+#cmbVendedorHistorial{
+    height:38px;
+    min-width:220px;
+    padding:0 10px;
+    border:1px solid var(--borde);
+    border-radius:5px;
+    background:#fff;
+    color:var(--texto);
+    font-size:13px;
+    outline:none;
+}
+
+#cmbVendedorHistorial:focus{
+    border-color:var(--color-rojo);
+    box-shadow:0 0 0 3px rgba(198,40,40,.10);
+}
+
+#btnExportarHistorial{
+    height:38px;
+    padding:0 16px;
+    border:none;
+    border-radius:5px;
+    background:var(--color-amarillo);
+    color:#222;
+    font-size:13px;
+    font-weight:600;
+    cursor:pointer;
+}
+
+#btnExportarHistorial:hover{
+    background:var(--color-amarillo-hover);
+}
+
+.historialBody{
+    padding-top:16px;
+}
+
+@media(max-width:700px){
+    .historialToolbar{
+        align-items:stretch;
+        flex-direction:column;
+    }
+
+    .historialFiltro{
+        align-items:stretch;
+        flex-direction:column;
+    }
+
+    #cmbVendedorHistorial,
+    #btnExportarHistorial{
+        width:100%;
+    }
+}
