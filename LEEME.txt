@@ -1,0 +1,21 @@
+CCO-PMA — Separación de carteras Lumis / Elizabeth
+
+ESTADO: PAQUETE DE PREPARACIÓN. NO PUBLICADO NI PROBADO CONTRA FIREBASE REAL.
+
+Archivos de despliegue: index.html, style.css, app.js, firebase.js, config.js, manifest.json.
+Archivo de seguridad: firestore.rules (NO se publica en Vercel; copiar manualmente a Firebase > Firestore > Rules).
+
+ANTES DE PUBLICAR
+1. Hacer respaldo verificable de las colecciones clientes, facturas, pagos, auditoria y usuarios de cco-pma.
+2. Desplegar los archivos web en entorno de prueba. No cambiar las reglas aún.
+3. Como administrador, abrir Configuración > Clientes > Asignar carteras a datos anteriores. Revisar las asignaciones antes de confirmar. Registros sin correspondencia deben revisarse manualmente. NO publicar reglas estrictas hasta resolverlos.
+4. En Firebase Rules publicar firestore.rules solo cuando los datos tengan operadorUid y el frontend ya esté desplegado.
+5. Probar inicio de sesión y lectura/escritura con Lumis, Elizabeth, Eneida y administrador; confirmar que una operadora no puede consultar ni modificar la cartera ajena, incluyendo por SDK de Firestore.
+6. Verificar importación Excel: columna Operador debe identificar claramente Lumis o Elizabeth. Filas con nombre desconocido se omiten.
+7. Tras migración, retirar el botón de migración y la excepción migrationOnly de las reglas para producción.
+
+ATENCIÓN: El control de duplicados de códigos de clientes y facturas se realiza dentro de cada cartera. Si se exige unicidad global entre ambas carteras, se necesita un índice único/operación transaccional en backend, porque una operadora no debe leer la otra cartera.
+
+El selector muestra todas las carteras solo a administrador y consulta. Para crear un cliente como administrador debe seleccionar Lumis o Elizabeth, no 'Todas las carteras'.
+
+Limitación pendiente de validación funcional: no se dispone de entorno Firebase de prueba ni pruebas con usuarios reales en esta sesión. El proceso de migración puede requerir revisión manual de documentos sin operador/código identificable.

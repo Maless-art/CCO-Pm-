@@ -1884,3 +1884,9 @@ HISTORIAL DE COBROS
         width:100%;
     }
 }
+
+/* Selector de cartera PMA */
+#cmbCartera {min-width:155px;padding:8px;border-radius:7px;border:1px solid #ccc;background:white;}
+.carteraLabel{font-size:13px;font-weight:600;}
+#btnMigrarCarteras{background:#566474;color:#fff;border:0;border-radius:6px;padding:9px 12px;cursor:pointer;}
+@media(max-width:700px){.headerRight{flex-wrap:wrap;gap:6px;}#cmbCartera{min-width:120px;}}

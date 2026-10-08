@@ -149,6 +149,12 @@
             </div>
 
             <div class="headerRight">
+    <label for="cmbCartera" class="carteraLabel">Cartera:</label>
+    <select id="cmbCartera" aria-label="Seleccionar cartera">
+      <option value="todas">Todas las carteras</option>
+      <option value="lumis">Lumis</option>
+      <option value="elizabeth">Elizabeth</option>
+    </select>
 
     <div class="userInfo">
 
@@ -1175,6 +1181,8 @@
                 <button id="btnNuevoCliente">
                     Nuevo Cliente
                 </button>
+
+                <button class="hidden" id="btnMigrarCarteras" title="Solo administrador: migrar datos anteriores con respaldo">Asignar carteras a datos anteriores</button>
 
                 <button id="btnImportarClientes">
                     Importar Excel

@@ -33,6 +33,40 @@ const app = document.getElementById("app");
 const loadingText = document.getElementById("loadingText");
 let usuarioActual = null;
 
+// Cartera de PMA: identificadores exclusivos de Firebase cco-pma.
+const CARTERAS = Object.freeze({
+  lumis: {uid:"5OCUloVGtfcKfg1zv2nlmaFWwnu1", nombre:"Lumis"},
+  elizabeth: {uid:"qn3fdJXRafOuTAdhRIGizFepL1z1", nombre:"Elizabeth"}
+});
+let carteraSeleccionada = "todas";
+const nombreCartera = uid => Object.values(CARTERAS).find(c=>c.uid===uid)?.nombre || "Sin asignar";
+const uidPorOperador = nombre => {
+  const v=String(nombre||"").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").trim();
+  if(v === "lumis") return CARTERAS.lumis.uid;
+  if(v === "elizabeth" || v === "eli") return CARTERAS.elizabeth.uid;
+  return null;
+};
+const esOperadora = () => usuarioActual?.rol === "operador";
+const uidCarteraVista = () => esOperadora() ? usuarioActual.uid :
+  (carteraSeleccionada === "todas" ? null : CARTERAS[carteraSeleccionada]?.uid);
+const filtroCartera = col => {
+  const uid=uidCarteraVista();
+  return uid ? query(collection(db,col),where("operadorUid","==",uid)) : collection(db,col);
+};
+const puedeGestionarRegistro = registro => puedeAdministrar() ||
+  (esOperadora() && registro?.operadorUid === usuarioActual.uid);
+function actualizarSelectorCarteras(){
+  const selector=document.getElementById("cmbCartera");
+  if(!selector) return;
+  selector.classList.toggle("hidden",esOperadora());
+  selector.value=esOperadora() ? "todas" : carteraSeleccionada;
+}
+async function refrescarCartera(){
+  await Promise.all([cargarCobrosFirestore(),cargarClientesFirestore(),cargarHistorialFirestore()]);
+  actualizarDashboard();
+}
+
+
 /*=========================================================
 CONFIGURACIÓN GENERAL
 =========================================================*/
@@ -1045,7 +1079,7 @@ async function cargarHistorialFirestore(){
     try{
 
         const resultado = await getDocs(
-            collection(db, "pagos")
+            filtroCartera("pagos")
         );
 
         historial = resultado.docs
@@ -1176,6 +1210,7 @@ async function ejecutarPago(){
         await addDoc(
             collection(db, "pagos"),
             {
+                operadorUid: factura.operadorUid,
                 facturaId: factura.id,
                 factura: factura.factura,
                 cliente: factura.cliente,
@@ -2075,8 +2110,16 @@ async function guardarFactura(e){
     const idFacturaEditada =
         formNuevaFactura.dataset.idFactura;
 
+    const clienteFactura = clientes.find(c=>c.id===selectClienteFactura.value) ||
+      clientes.find(c=>c.codigo===document.getElementById("inputCodigo").value.trim());
+    const facturaOriginal = modoEdicion ? cobros.find(c=>c.id===idFacturaEditada) : null;
+    const operadorUid = modoEdicion ? facturaOriginal?.operadorUid : clienteFactura?.operadorUid;
+    if(!operadorUid || (esOperadora() && operadorUid!==usuarioActual.uid)){
+      alert("Seleccione un cliente de su cartera para registrar la factura.");return;
+    }
     const datosFactura = {
 
+        operadorUid,
         codigo: document.getElementById("inputCodigo").value.trim(),
         cliente: document.getElementById("inputCliente").value.trim(),
         ruta: document.getElementById("inputRuta").value.trim(),
@@ -2114,7 +2157,8 @@ datosFactura.factura = numeroFactura;
 
 const consultaDuplicado = query(
     collection(db, "facturas"),
-    where("factura", "==", numeroFactura),
+    where("operadorUid", "==", operadorUid),
+     where("factura", "==", numeroFactura),
     limit(1)
 );
 
@@ -2210,7 +2254,7 @@ async function cargarCobrosFirestore(){
     try{
 
         const resultado = await getDocs(
-            collection(db, "facturas")
+            filtroCartera("facturas")
         );
 
         cobros = resultado.docs
@@ -2285,6 +2329,12 @@ function puedeAdministrar(){
 }
 
 
+document.getElementById("cmbCartera")?.addEventListener("change",async event=>{
+  if(esOperadora()) return;
+  carteraSeleccionada=event.target.value;
+  await refrescarCartera();
+});
+
 function aplicarPermisos(){
 
     if(!usuarioActual){
@@ -2294,6 +2344,11 @@ function aplicarPermisos(){
     const permiteAlimentar = puedeAlimentar();
     const permiteAdministrar = puedeAdministrar();
 
+    btnNuevoCliente.classList.toggle("hidden",!permiteAlimentar);
+    btnImportarClientes.classList.toggle("hidden",!permiteAdministrar);
+    document.getElementById("btnMigrarCarteras")?.classList.toggle("hidden",!permiteAdministrar);
+    document.querySelectorAll(".btnEditarCliente,.btnInactivarCliente,.btnReactivarCliente")
+      .forEach(b=>b.classList.toggle("hidden",!permiteAlimentar));
     btnNuevaFactura.classList.toggle(
         "hidden",
         !permiteAlimentar
@@ -2311,7 +2366,7 @@ function aplicarPermisos(){
 
             boton.classList.toggle(
                 "hidden",
-                !permiteAdministrar
+                !permiteAlimentar
             );
 
         });
@@ -2415,13 +2470,13 @@ const btnEditar =
 
 function editarFactura(idFactura){
 
-    if(!puedeAdministrar()){
+    if(!puedeAlimentar()){
         return;
     }
 
     const factura = cobros.find(item => item.id === idFactura);
 
-    if(!factura){
+    if(!factura || !puedeGestionarRegistro(factura)){
         return;
     }
 
@@ -2535,6 +2590,7 @@ async function registrarAuditoria(
             collection(db, "auditoria"),
             {
                 accion,
+                operadorUid: factura.operadorUid || "",
                 facturaId: factura.id || "",
                 factura: factura.factura || "",
                 cliente: factura.cliente || "",
@@ -2571,6 +2627,7 @@ async function registrarAuditoriaClienteEdicion(
             collection(db, "auditoria"),
             {
                 accion: "CLIENTE EDITADO",
+                operadorUid: anterior?.operadorUid || nuevo.operadorUid || "",
 
                 clienteId:
                     nuevo.id || "",
@@ -2627,7 +2684,7 @@ async function cargarAuditoriaFirestore(){
     try{
 
         const resultado = await getDocs(
-            collection(db, "auditoria")
+            filtroCartera("auditoria")
         );
 
         eventosAuditoria = resultado.docs
@@ -2796,12 +2853,14 @@ const cmbEstadoCliente =
 
 btnNuevoCliente.addEventListener("click", ()=>{
 
-    if(!puedeAdministrar()){
+    if(!puedeAlimentar()){
         return;
     }
 
     formNuevoCliente.reset();
-
+    const campo=document.getElementById("clienteOperador");
+    if(esOperadora()){campo.value=nombreCartera(usuarioActual.uid);campo.readOnly=true;}
+    else {campo.value=nombreCartera(uidCarteraVista());campo.readOnly=true;}
     modalNuevoCliente.classList.remove("hidden");
 
 });
@@ -2855,7 +2914,7 @@ document.addEventListener("click", async function(event){
 
 function abrirEditarCliente(idCliente){
 
-    if(!puedeAdministrar()){
+    if(!puedeAlimentar()){
         return;
     }
 
@@ -2863,7 +2922,7 @@ function abrirEditarCliente(idCliente){
         item => item.id === idCliente
     );
 
-    if(!cliente){
+    if(!cliente || !puedeGestionarRegistro(cliente)){
         return;
     }
 
@@ -2894,6 +2953,7 @@ function abrirEditarCliente(idCliente){
     document.getElementById("clienteOperador").value =
         cliente.operador || "";
 
+    document.getElementById("clienteOperador").readOnly=true;
     formNuevoCliente.dataset.modo = "editar";
     formNuevoCliente.dataset.idCliente = idCliente;
 
@@ -2914,7 +2974,7 @@ async function cambiarEstadoCliente(
     nuevoEstado
 ){
 
-    if(!puedeAdministrar()){
+    if(!puedeAlimentar()){
         return;
     }
 
@@ -2922,7 +2982,7 @@ async function cambiarEstadoCliente(
         item => item.id === idCliente
     );
 
-    if(!cliente){
+    if(!cliente || !puedeGestionarRegistro(cliente)){
         return;
     }
 
@@ -2987,6 +3047,7 @@ async function registrarAuditoriaCliente(
             collection(db, "auditoria"),
             {
                 accion,
+                operadorUid: cliente.operadorUid || "",
 
                 clienteId:
                     cliente.id || "",
@@ -3028,7 +3089,7 @@ async function cargarClientesFirestore(){
     try{
 
         const resultado = await getDocs(
-            collection(db, "clientes")
+            filtroCartera("clientes")
         );
 
         clientes = resultado.docs.map(documento => ({
@@ -3160,6 +3221,7 @@ function mostrarClientes(){
         `;
 
     });
+    aplicarPermisos();
 
 }
 
@@ -3192,7 +3254,7 @@ async function guardarNuevoCliente(event){
 
     event.preventDefault();
 
-    if(!puedeAdministrar()){
+    if(!puedeAlimentar()){
         return;
     }
 const modoEdicion =
@@ -3256,11 +3318,21 @@ const idClienteEditado =
     }
 
 
+    const registroAnterior = modoEdicion ? clientes.find(c=>c.id===idClienteEditado) : null;
+    if(modoEdicion && !puedeGestionarRegistro(registroAnterior)) return;
+    const operadorUid = modoEdicion ? registroAnterior.operadorUid :
+      (esOperadora() ? usuarioActual.uid : uidCarteraVista());
+    if(!operadorUid){alert("Seleccione Lumis o Elizabeth en el selector de cartera antes de crear un cliente.");return;}
+    if(esOperadora() && uidPorOperador(operador) !== usuarioActual.uid){
+      alert("El campo Operador debe corresponder a su propia cartera.");return;
+    }
     try{
 
         const consultaCodigo = query(
 
     collection(db, "clientes"),
+
+    where("operadorUid", "==", operadorUid),
 
     where("codigo", "==", codigo),
 
@@ -3350,6 +3422,7 @@ if(existeDuplicado){
             telefono,
             direccion,
             operador,
+            operadorUid,
 
             activo: true,
 
@@ -3586,6 +3659,8 @@ async function importarClientesExcel(event){
             }
 
 
+            const operadorUid = uidPorOperador(operador);
+            if(!operadorUid){errores++;continue;}
             await addDoc(
                 collection(db, "clientes"),
                 {
@@ -3598,6 +3673,7 @@ async function importarClientesExcel(event){
                     telefono,
                     direccion,
                     operador,
+                    operadorUid,
 
                     activo: true,
 
@@ -3818,6 +3894,45 @@ if(datosUsuario.activo !== true){
     loginScreen.classList.add("hidden");
     app.classList.remove("hidden");
 
-    await cargarCobrosFirestore();
-aplicarPermisos();
+    actualizarSelectorCarteras();
+    await refrescarCartera();
+    aplicarPermisos();
 });
+
+// Migración manual y explícita de datos legados; ejecutar SOLO con respaldo verificado.
+async function migrarCarterasLegadas(){
+ if(!puedeAdministrar()) return;
+ if(!confirm("¿Ya realizó un respaldo completo de Firestore cco-pma? Esta operación asignará cartera a registros antiguos sin operadorUid.")) return;
+ const registros={};
+ for(const col of ["clientes","facturas","pagos","auditoria"]){
+   const snap=await getDocs(collection(db,col));
+   registros[col]=snap.docs.map(d=>({id:d.id,...d.data()}));
+ }
+ const porCodigo=new Map(), porFacturaId=new Map(), porNumeroFactura=new Map();
+ for(const c of registros.clientes){
+   const uid=c.operadorUid || uidPorOperador(c.operador);
+   if(uid && c.codigo) porCodigo.set(String(c.codigo).trim().toUpperCase(),uid);
+ }
+ const cambios=[];const pendientes=[];
+ for(const col of ["clientes","facturas","pagos","auditoria"]){
+   for(const r of registros[col]){
+     let uid=r.operadorUid;
+     if(!uid){
+       uid=uidPorOperador(r.operador) || porCodigo.get(String(r.codigo||r.codigoCliente||"").trim().toUpperCase());
+       if(col==="pagos" || col==="auditoria") uid=uid || porFacturaId.get(r.facturaId) || porNumeroFactura.get(r.factura);
+     }
+     if(col==="facturas" && uid){porFacturaId.set(r.id,uid);if(r.factura)porNumeroFactura.set(r.factura,uid);}
+     if(!r.operadorUid){
+       if(uid) cambios.push({col,id:r.id,uid});
+       else pendientes.push(`${col}/${r.id}`);
+     }
+   }
+ }
+ const resumen=`Registros para asignar: ${cambios.length}\nSin propietario identificable: ${pendientes.length}\n\n${pendientes.slice(0,12).join("\n")}\n\n¿Aplicar SOLO las asignaciones identificadas?`;
+ if(!confirm(resumen)) return;
+ let ok=0;
+ for(const c of cambios){await updateDoc(doc(db,c.col,c.id),{operadorUid:c.uid});ok++;}
+ alert(`Migración terminada: ${ok} asignados. ${pendientes.length} requieren revisión manual. No publique reglas estrictas hasta resolverlos.`);
+ await refrescarCartera();
+}
+document.getElementById("btnMigrarCarteras")?.addEventListener("click",migrarCarterasLegadas);
