@@ -1,0 +1,23 @@
+CCO-PMA — Actualización de seguridad y transferencia inicial
+
+CAMBIOS:
+- Pago: factura y recibo se escriben juntos mediante transacción atómica de Firestore.
+- Reglas: comprueban consistencia entre pago y factura, propiedad de cartera y cliente de factura.
+- Operadoras: pueden crear clientes y facturas de su cartera, registrar cobros y editar notas; no editar montos de facturas existentes ni anular.
+- Administrador: puede transferir un cliente SOLO si no tiene facturas, para no separar historiales.
+- Transferencias de clientes con facturas: BLOQUEADAS hasta diseñar procedimiento integral.
+- No se modifican datos de Firestore automáticamente.
+
+DESPLIEGUE:
+1. Subir app.js y firebase.js juntos a GitHub/Vercel.
+2. Confirmar despliegue Vercel.
+3. Publicar firestore.rules en Firestore Database > Reglas (GitHub no las publica).
+4. Probar usuarios: Franklin, Lumis, Elizabeth y Eneida.
+5. Con cada operadora crear cliente, factura, abono parcial y pago final de PRUEBA; revisar acceso cruzado y saldos.
+6. No cargar datos reales hasta pasar pruebas.
+
+ADVERTENCIAS:
+- No se ha podido ejecutar una prueba real contra Firebase ni el emulador de reglas en este entorno.
+- Los controles de acceso se deben verificar en Firebase antes de producción.
+- Auditoría se registra tras la transacción financiera; si falla la auditoría, el pago queda aplicado y debe investigarse.
+- El chequeo de duplicados es orientativo, no una restricción única transaccional de base de datos.

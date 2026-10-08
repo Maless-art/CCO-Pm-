@@ -16,7 +16,8 @@ import {
     deleteDoc,
     query,
     where,
-    limit
+    limit,
+    runTransaction
 } from
 "https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js";
 
@@ -62,5 +63,6 @@ export {
     deleteDoc,
     query,
     where,
-    limit
+    limit,
+    runTransaction
 };

@@ -1159,110 +1159,65 @@ break;
 
 
 async function ejecutarPago(){
-
-    if(!pagoPendiente){
-        return;
-    }
-
-    const factura = cobros.find(
-        item => item.id === pagoPendiente.idFactura
-    );
-
-    if(!factura){
-        pagoPendiente = null;
-        return;
-    }
-
-    const saldoNuevo = Number(
-        (
-            pagoPendiente.saldoAnterior -
-            pagoPendiente.montoPago
-        ).toFixed(2)
-    );
-
-    const pagoTotal = saldoNuevo <= 0;
-
-    try{
-
-        await updateDoc(
-            doc(db, "facturas", factura.id),
-            {
-                saldoPendiente: pagoTotal ? 0 : saldoNuevo,
-
-                montoPagado:
-                    Number(factura.montoPagado || 0) +
-                    pagoPendiente.montoPago,
-
+    if(!pagoPendiente || !puedeAlimentar()) return;
+    const pendiente = {...pagoPendiente};
+    const factura = cobros.find(item => item.id === pendiente.idFactura);
+    if(!factura || !puedeGestionarRegistro(factura)) return;
+    const referenciaFactura = doc(db, "facturas", factura.id);
+    const referenciaPago = doc(collection(db, "pagos"));
+    const ahora = new Date().toISOString();
+    try {
+        await runTransaction(db, async transaccion => {
+            const documento = await transaccion.get(referenciaFactura);
+            if(!documento.exists()) throw new Error("La factura ya no existe.");
+            const actual = documento.data();
+            if(actual.operadorUid !== factura.operadorUid || actual.pagado || actual.estado === "anulada")
+                throw new Error("La factura no está disponible para cobro.");
+            const saldo = Number(actual.saldoPendiente ?? actual.monto);
+            const monto = Number(pendiente.montoPago);
+            if(!Number.isFinite(saldo) || !Number.isFinite(monto) || monto <= 0 || monto > saldo)
+                throw new Error("El saldo cambió. Actualice la factura y vuelva a intentarlo.");
+            const saldoNuevo = Number((saldo - monto).toFixed(2));
+            const montoPagado = Number((Number(actual.montoPagado || 0) + monto).toFixed(2));
+            const pagoTotal = saldoNuevo === 0;
+            transaccion.update(referenciaFactura, {
+                saldoPendiente: saldoNuevo,
+                montoPagado,
                 pagado: pagoTotal,
-
-                estado: pagoTotal
-                    ? "pagada"
-                    : "activa",
-
-                fechaUltimoPago:
-                    new Date().toISOString(),
-
-                actualizadoPor:
-                    usuarioActual.correo
-            }
-        );
-
-        await addDoc(
-            collection(db, "pagos"),
-            {
-                operadorUid: factura.operadorUid,
+                estado: pagoTotal ? "pagada" : "activa",
+                fechaUltimoPago: ahora,
+                ultimoPagoId: referenciaPago.id,
+                actualizadoPor: usuarioActual.correo
+            });
+            transaccion.set(referenciaPago, {
+                operadorUid: actual.operadorUid,
                 facturaId: factura.id,
-                factura: factura.factura,
-                cliente: factura.cliente,
-                ruta: factura.ruta,
-                vendedor: factura.vendedor,
-		numeroRecibo: pagoPendiente.numeroRecibo,
-                monto: pagoPendiente.montoPago,
-                saldoAnterior:
-                    pagoPendiente.saldoAnterior,
-                saldoPosterior:
-                    pagoTotal ? 0 : saldoNuevo,
-                tipo: pagoTotal
-                    ? "pago total"
-                    : "abono",
-                fechaPago:
-                    new Date().toISOString(),
-                usuario:
-                    usuarioActual.correo
-            }
-        );
-await registrarAuditoria(
-
-    pagoTotal
-        ? "PAGO TOTAL"
-        : "ABONO",
-
-    factura,
-
-    `Recibo: ${pagoPendiente.numeroRecibo}. ` +
-    `Monto recibido: B/. ${pagoPendiente.montoPago.toFixed(2)}. ` +
-    `Saldo anterior: B/. ${pagoPendiente.saldoAnterior.toFixed(2)}. ` +
-    `Saldo posterior: B/. ${(pagoTotal ? 0 : saldoNuevo).toFixed(2)}.`
-
-);
-
+                factura: actual.factura,
+                cliente: actual.cliente,
+                ruta: actual.ruta,
+                vendedor: actual.vendedor,
+                numeroRecibo: pendiente.numeroRecibo,
+                monto,
+                saldoAnterior: saldo,
+                saldoPosterior: saldoNuevo,
+                tipo: pagoTotal ? "pago total" : "abono",
+                fechaPago: ahora,
+                usuario: usuarioActual.correo
+            });
+        });
         pagoPendiente = null;
-
+        await registrarAuditoria(
+            "PAGO REGISTRADO", factura,
+            `Recibo: ${pendiente.numeroRecibo}. Monto: B/. ${pendiente.montoPago.toFixed(2)}.`
+        );
         await cargarCobrosFirestore();
         await cargarHistorialFirestore();
-
-    }catch(error){
-
-        console.error(
-            "Error registrando pago:",
-            error
-        );
-
-        alert("No se pudo registrar el pago.");
-
+    } catch(error) {
+        console.error("Error registrando pago:",error);
+        alert("No se pudo registrar el pago: " + error.message);
     }
-
 }
+
 async function ejecutarAnulacion(){
 
     const idFactura = modalConfirmacion.dataset.idFactura;
@@ -2106,6 +2061,8 @@ async function guardarFactura(e){
 
     const modoEdicion =
         formNuevaFactura.dataset.modo === "editar";
+    if(modoEdicion && !puedeAdministrar()){alert("Solo el administrador puede editar facturas.");return;}
+
 
     const idFacturaEditada =
         formNuevaFactura.dataset.idFactura;
@@ -2120,6 +2077,7 @@ async function guardarFactura(e){
     const datosFactura = {
 
         operadorUid,
+        clienteId: modoEdicion ? facturaOriginal?.clienteId : clienteFactura?.id,
         codigo: document.getElementById("inputCodigo").value.trim(),
         cliente: document.getElementById("inputCliente").value.trim(),
         ruta: document.getElementById("inputRuta").value.trim(),
@@ -2880,6 +2838,9 @@ document.addEventListener("click", async function(event){
 
     const btnReactivar =
         event.target.closest(".btnReactivarCliente");
+    const btnTransferir = event.target.closest(".btnTransferirCliente");
+    if(btnTransferir){ await transferirCliente(btnTransferir.dataset.id); return; }
+
 
 
     if(btnEditar){
@@ -3200,6 +3161,7 @@ function mostrarClientes(){
         Editar
     </button>
 
+    ${puedeAdministrar() ? `<button type="button" class="btnTransferirCliente" data-id="${cliente.id}">Transferir</button>` : ""}
     ${cliente.activo
         ? `<button
             type="button"
@@ -3223,6 +3185,31 @@ function mostrarClientes(){
     });
     aplicarPermisos();
 
+}
+
+// La transferencia está permitida solo antes de emitir facturas, para no fragmentar el historial.
+async function transferirCliente(idCliente){
+    if(!puedeAdministrar()) return;
+    const cliente = clientes.find(c => c.id === idCliente);
+    if(!cliente) return;
+    const destino = cliente.operadorUid === CARTERAS.lumis.uid ? CARTERAS.elizabeth : CARTERAS.lumis;
+    const origen = nombreCartera(cliente.operadorUid);
+    if(!confirm(`¿Transferir ${cliente.cliente} de ${origen} a ${destino.nombre}? Solo es posible si no tiene facturas.`)) return;
+    try {
+        const facturasCliente = await getDocs(query(collection(db,"facturas"),where("clienteId","==",idCliente),limit(1)));
+        // Compatibilidad: las facturas antiguas pueden tener código, pero no clienteId.
+        const facturasCodigo = await getDocs(query(collection(db,"facturas"),where("codigo","==",cliente.codigo),limit(1)));
+        if(!facturasCliente.empty || !facturasCodigo.empty){
+            alert("No se puede transferir: el cliente ya tiene facturas. Se requiere una transferencia integral de historial.");return;
+        }
+        await updateDoc(doc(db,"clientes",idCliente),{
+            operadorUid:destino.uid,operador:destino.nombre,
+            actualizadoPor:usuarioActual.correo,fechaActualizacion:new Date().toISOString()
+        });
+        await registrarAuditoriaCliente("CLIENTE TRANSFERIDO",{...cliente,operadorUid:destino.uid});
+        await cargarClientesFirestore();
+        alert(`Cliente transferido a ${destino.nombre}.`);
+    }catch(error){console.error(error);alert("No se pudo transferir el cliente: "+error.message);}
 }
 
 function cerrarNuevoCliente(){

@@ -8,17 +8,52 @@ service cloud.firestore {
   function consult() { return active() && profile().rol == 'consulta'; }
   function operator() { return active() && profile().rol == 'operador'; }
   function canWrite() { return admin() || operator(); }
-  function sees(d) { return active() && (admin() || consult() || (operator() && d.operadorUid == request.auth.uid)); }
-  function owns(d) { return canWrite() && (admin() || (operator() && d.operadorUid == request.auth.uid)); }
-  function validOwner(d) {
-   return d.keys().hasAll(['operadorUid']) &&
-    d.operadorUid in ['5OCUloVGtfcKfg1zv2nlmaFWwnu1', 'qn3fdJXRafOuTAdhRIGizFepL1z1'];
-  }
+  function sees(d) { return active() && (admin() || consult() || (operator() && d.get('operadorUid','') == request.auth.uid)); }
+  function owns(d) { return canWrite() && (admin() || (operator() && d.get('operadorUid','') == request.auth.uid)); }
+  function operatorLabel(d) { return (d.operadorUid == '5OCUloVGtfcKfg1zv2nlmaFWwnu1' && d.operador == 'Lumis') || (d.operadorUid == 'qn3fdJXRafOuTAdhRIGizFepL1z1' && d.operador in ['Elizabeth','Eli']); }
+  function validOwner(d) { return d.keys().hasAll(['operadorUid']) && d.operadorUid in ['5OCUloVGtfcKfg1zv2nlmaFWwnu1','qn3fdJXRafOuTAdhRIGizFepL1z1']; }
   function sameOwner() { return request.resource.data.operadorUid == resource.data.operadorUid; }
-  function migrationOnly() {
-   return admin() && !resource.data.keys().hasAny(['operadorUid']) &&
-    request.resource.data.diff(resource.data).affectedKeys().hasOnly(['operadorUid']) &&
-    validOwner(request.resource.data);
+  function migrationOnly() { return admin() && !resource.data.keys().hasAny(['operadorUid']) && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['operadorUid']) && validOwner(request.resource.data); }
+  function facturaPath(id) { return /databases/$(database)/documents/facturas/$(id); }
+  function clientePath(id) { return /databases/$(database)/documents/clientes/$(id); }
+  function pagoPath(id) { return /databases/$(database)/documents/pagos/$(id); }
+  function validInvoiceClient(d) {
+   return d.get('clienteId','') is string && d.clienteId != '' &&
+    exists(clientePath(d.clienteId)) && get(clientePath(d.clienteId)).data.operadorUid == d.operadorUid &&
+    get(clientePath(d.clienteId)).data.codigo == d.codigo;
+  }
+  function paymentChange(facturaId) {
+   let a = resource.data;
+   let b = request.resource.data;
+   let id = b.get('ultimoPagoId','');
+   let p = getAfter(pagoPath(id)).data;
+   let saldoAntes = a.get('saldoPendiente',a.monto);
+   let saldoDespues = b.saldoPendiente;
+   let pagadoAntes = a.get('montoPagado',0);
+   return id is string && id != '' && id != a.get('ultimoPagoId','') && existsAfter(pagoPath(id)) &&
+    b.diff(a).affectedKeys().hasOnly(['saldoPendiente','montoPagado','pagado','estado','fechaUltimoPago','ultimoPagoId','actualizadoPor']) &&
+    a.get('pagado',false) == false && a.get('estado','activa') != 'anulada' &&
+    p.facturaId == facturaId && p.operadorUid == a.operadorUid &&
+    p.monto is number && p.monto > 0 && p.monto <= saldoAntes &&
+    p.saldoAnterior == saldoAntes && p.saldoPosterior == saldoDespues &&
+    saldoDespues >= saldoAntes - p.monto - 0.001 && saldoDespues <= saldoAntes - p.monto + 0.001 &&
+    b.montoPagado >= pagadoAntes + p.monto - 0.001 && b.montoPagado <= pagadoAntes + p.monto + 0.001 &&
+    b.pagado == (saldoDespues == 0) &&
+    b.estado == (saldoDespues == 0 ? 'pagada' : 'activa');
+  }
+  function validPayment(d,id) {
+   let before = get(facturaPath(d.facturaId)).data;
+   let after = getAfter(facturaPath(d.facturaId)).data;
+   return d.facturaId is string && exists(facturaPath(d.facturaId)) &&
+    before.operadorUid == d.operadorUid && after.operadorUid == d.operadorUid &&
+    after.get('ultimoPagoId','') == id && before.get('ultimoPagoId','') != id &&
+    d.monto is number && d.monto > 0 &&
+    d.saldoAnterior == before.get('saldoPendiente',before.monto) &&
+    d.saldoPosterior == after.saldoPendiente &&
+    d.saldoPosterior >= d.saldoAnterior - d.monto - 0.001 && d.saldoPosterior <= d.saldoAnterior - d.monto + 0.001 &&
+    after.montoPagado >= before.get('montoPagado',0) + d.monto - 0.001 && after.montoPagado <= before.get('montoPagado',0) + d.monto + 0.001 &&
+    d.factura == before.factura && d.cliente == before.cliente &&
+    d.numeroRecibo is string && d.numeroRecibo.size() > 0;
   }
   match /usuarios/{userId} {
    allow read: if logged() && request.auth.uid == userId;
@@ -27,26 +62,27 @@ service cloud.firestore {
   match /clientes/{id} {
    allow read: if sees(resource.data);
    allow create: if canWrite() && validOwner(request.resource.data) && owns(request.resource.data);
-   allow update: if (owns(resource.data) && sameOwner()) || migrationOnly();
+   allow update: if (owns(resource.data) && (admin() && validOwner(request.resource.data) || sameOwner()) &&
+     (admin() || request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+      'codigo','cliente','vendedor','ruta','plazo','contacto','telefono','direccion','operador','activo','fechaActualizacion','actualizadoPor'
+     ]))) || migrationOnly();
    allow delete: if false;
   }
   match /facturas/{id} {
    allow read: if sees(resource.data);
-   allow create: if canWrite() && validOwner(request.resource.data) && owns(request.resource.data);
+   allow create: if canWrite() && validOwner(request.resource.data) && owns(request.resource.data) &&
+     validInvoiceClient(request.resource.data) && request.resource.data.get('pagado',false) == false &&
+     request.resource.data.get('estado','activa') == 'activa' &&
+     request.resource.data.monto is number && request.resource.data.monto > 0;
    allow update: if (owns(resource.data) && sameOwner() &&
-      (admin() || request.resource.data.diff(resource.data).affectedKeys().hasOnly([
-        'codigo','cliente','ruta','vendedor','contacto','telefono','factura','monto',
-        'fechaFactura','entrega','chequePosfechado','fechaCheque','plazo','notas',
-        'pagado','estado','actualizadoPor','fechaActualizacion',
-        'fechaActualizacionNota','notaActualizadaPor','saldoPendiente',
-        'montoPagado','fechaUltimoPago'
-      ]) && request.resource.data.get('anulada',false) == resource.data.get('anulada',false)
-      && request.resource.data.get('estado','activa') != 'anulada')) || migrationOnly();
+     (admin() ||
+      (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['notas','fechaActualizacionNota','notaActualizadaPor'])) ||
+      paymentChange(id))) || migrationOnly();
    allow delete: if false;
   }
   match /pagos/{id} {
    allow read: if sees(resource.data);
-   allow create: if canWrite() && validOwner(request.resource.data) && owns(request.resource.data);
+   allow create: if canWrite() && validOwner(request.resource.data) && owns(request.resource.data) && validPayment(request.resource.data,id);
    allow update: if migrationOnly();
    allow delete: if false;
   }
