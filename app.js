@@ -3923,3 +3923,13 @@ async function migrarCarterasLegadas(){
  await refrescarCartera();
 }
 document.getElementById("btnMigrarCarteras")?.addEventListener("click",migrarCarterasLegadas);
+
+document.getElementById("btnCerrarSesion")
+  .addEventListener("click", async () => {
+    try {
+      await signOut(auth);
+    } catch (error) {
+      console.error("Error al cerrar sesión:", error);
+      alert("No se pudo cerrar la sesión.");
+    }
+  });
