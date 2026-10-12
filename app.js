@@ -14,6 +14,7 @@ query,
 where,
 limit,
     deleteDoc
+runTransaction
 } from "./firebase.js";
 
 /*=========================================================
